@@ -38,6 +38,11 @@ data Person = Person{
 
 data Maybe a = Nothing | Just a deriving (Show)
 
+instance (Eq m) => Eq (Main.Maybe m) where
+    Main.Just x == Main.Just y = x == y
+    Main.Nothing == Main.Nothing = True
+    _ == _ = False
+
 data Car = Car {
            make :: String,
            model :: String,
@@ -60,7 +65,11 @@ vscalarmulti :: (Num t) => Vector t -> Vector t -> t
 (Vector i j k) `vscalarmulti` (Vector l m n) = i * l + j * m + k * n
 
 
-data Either a b = Left a | Right b deriving (Eq, Ord, Read, Show)
+data Either a b = Left a | Right b deriving (Eq, Ord, Read)
+instance (Show a, Show b) => Show (Main.Either a b) where
+    show (Main.Left a) = "Main.Left " ++ show a 
+    show (Main.Right b) = "Main.Right " ++ show b
+
 left :: Prelude.Either a b -> Prelude.Maybe a
 left (Prelude.Left a) = Prelude.Just a
 left (Prelude.Right b) = Prelude.Nothing
@@ -91,3 +100,65 @@ lockers = Map.fromList [
     ,(109,(Taken,"893JJ"))  
     ,(110,(Taken,"99292"))  
     ]
+
+
+
+infixr 5 :-:
+data List a = Empty | a :-: (List a) deriving (Show, Read, Eq, Ord)
+
+infixr 5 .++
+Empty .++ ys = ys
+(x :-: xs) .++ ys = x :-: (xs .++ ys)
+
+
+data Tree a = EmptyTree | Node a (Tree a) (Tree a) deriving (Show, Read, Eq)
+singleton :: a -> Tree a
+singleton x = Node x EmptyTree EmptyTree
+
+treeInsert :: (Ord a) => a -> Tree a -> Tree a
+treeInsert x EmptyTree = singleton x
+treeInsert x (Node y left right) 
+  | x == y = Node x left right
+  | x < y  = Node y (treeInsert x left) right
+  | x > y  = Node y left (treeInsert x right)
+
+infixr 5 .+
+(.+) :: (Ord a) => a -> Tree a -> Tree a
+x .+ t = treeInsert x t
+
+treeElem :: (Ord a) => a -> Tree a -> Bool
+treeElem x EmptyTree = False
+treeElem x (Node y left right)
+  | x == y = True
+  | x < y =  treeElem x left
+  | x > y =  treeElem x right
+
+data TrafficLight = Yellow | Red | Green
+instance Eq TrafficLight where
+    Yellow == Yellow = True
+    Red == Red = True
+    Green == Green = True
+    _ == _ = False
+
+
+class YesNo a where
+    yesno :: a -> Bool
+
+instance YesNo Int where
+    yesno 0 = False
+    yesno _ = True
+
+instance YesNo [a] where
+    yesno [] = False
+    yesno _ = True
+
+instance YesNo Bool where
+    yesno = id
+
+instance Functor Main.Maybe where
+    fmap f (Main.Just x) = Main.Just (f x)
+    fmap f Main.Nothing = Main.Nothing
+
+instance Functor (Main.Either a) where
+    fmap f (Main.Left x) = Main.Left x
+    fmap f (Main.Right x) = Main.Right (f x)
