@@ -162,3 +162,18 @@ instance Functor Main.Maybe where
 instance Functor (Main.Either a) where
     fmap f (Main.Left x) = Main.Left x
     fmap f (Main.Right x) = Main.Right (f x)
+
+
+class Tofu t where
+    tofu :: j a -> t a j
+
+data Frank a j = Frank {frankField :: j a} deriving (Show)
+
+instance Tofu Frank where
+    tofu x = Frank x
+
+data Barry t k p = Barry {yabba :: p, dabba :: t k} deriving (Show)
+
+instance Functor (Barry t k) where
+    fmap f (Barry {yabba = x, dabba = y}) = Barry {yabba = f x, dabba = y}
+
